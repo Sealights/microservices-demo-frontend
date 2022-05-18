@@ -1,9 +1,9 @@
 
-name: Push to main
+name: Push to master
 on:
   push:  
     branches: 
-      - main
+      - master
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
