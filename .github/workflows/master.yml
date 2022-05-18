@@ -35,27 +35,12 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      # - name: Docker meta
-      #   id: meta
-      #   uses: docker/metadata-action@v3
-      #   with:
-      #     images: microservices-demo-frontned
-
-      # - name: Build and push
-      #   id: docker_build
-      #   if: github.event_name != 'pull_request'
-      #   uses: docker/build-push-action@v2
-      #   with:
-      #     push: true
-      #     tags:  ${{ steps.meta.outputs.tags }}
-
-
-        - name: Build, tag, and push image to Amazon ECR
-          if: github.event_name != 'pull_request'
-          env:
-            ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-            ECR_REPOSITORY: microservices-demo-frontned
-            IMAGE_TAG: microservices-demo-frontned
-          run: |
-            docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-            docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+      - name: Build, tag, and push image to Amazon ECR
+        if: github.event_name != 'pull_request'
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: microservices-demo-frontned
+          IMAGE_TAG: microservices-demo-frontned
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
