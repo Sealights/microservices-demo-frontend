@@ -35,9 +35,8 @@ jobs:
         if: github.event_name != 'pull_request'
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: microservices-demo-frontned
+          ECR_REPOSITORY: microservices-demo-frontend
           IMAGE_TAG: latest
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          echo pushing to $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .          
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
