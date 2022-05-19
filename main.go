@@ -111,7 +111,7 @@ func main() {
 		srvPort = os.Getenv("PORT")
 	}
 	addr := os.Getenv("LISTEN_ADDR")
-	fmt.Println("Address: %s, PORT: %s", addr, srvPort)
+	log.Printf("Address: %s, PORT: %s", addr, srvPort)
 
 	svc := new(frontendServer)
 	mustMapEnv(&svc.productCatalogSvcAddr, "PRODUCT_CATALOG_SERVICE_ADDR")
