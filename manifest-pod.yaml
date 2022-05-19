@@ -20,7 +20,7 @@ spec:
           resources: {}
           ports:
             - name: c-http
-              containerPort: 8080
+              containerPort: 7000
               protocol: TCP
           env:
             - name: SHIPPING_SERVICE_ADDR
