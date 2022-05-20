@@ -1,0 +1,2 @@
+kubectl delete svc b-frontend
+kubectl create -f manifest-svc.yaml
