@@ -37,7 +37,18 @@ RUN wget https://agents.sealights.co/slgoagent/latest/slgoagent-linux-amd64.tar.
     && chmod +x ./slgoagent
 
 RUN ./slcli config init --lang go --token $RM_DEV_SL_TOKEN
-RUN BUILD_NAME=$(date +%F_%T) && ./slcli config create-bsid --app "frontend" --build "$BUILD_NAME" --branch "master"
+
+
+
+RUN if [[ $IS_PR -eq 0 ]]; then \
+    echo "Check-in to repo"; \
+    BUILD_NAME=$(date +%F_%T) && ./slcli config create-bsid --app "frontend" --build "$BUILD_NAME" --branch "master" ; \
+else \ 
+    echo "Pull request"; \
+    ./slcli prConfig create-bsid --app "frontend" --targetBranch "${TARGET_BRANCH}" \
+        --latestCommit "${LATEST_COMMIT}" --pullRequestNumber "${PR_NUMBER}" --repositoryUrl "${TARGET_REPO_URL}"; \
+fi
+
 RUN ./slcli scan  --bsid buildSessionId.txt --path-to-scanner ./slgoagent --workspacepath ./ --scm git --scmProvider github
 RUN go test -v ./...
 RUN go build -gcflags="${SKAFFOLD_GO_GCFLAGS}" -o /go/bin/frontend .
