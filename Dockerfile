@@ -64,8 +64,8 @@ RUN if [[ $IS_PR -eq 0 ]]; then \
     BUILD_NAME=$(date +%F_%T) && ./slcli config create-bsid --app "frontend" --build "$BUILD_NAME" --branch "master" ; \
 else \ 
     echo "Pull request"; \
-    ./slcli prConfig create-bsid --app "frontend" --targetBranch "${TARGET_BRANCH}" \
-        --latestCommit "${LATEST_COMMIT}" --pullRequestNumber "${PR_NUMBER}" --repositoryUrl "${TARGET_REPO_URL}"; \
+    ./slcli config create-pr-bsid --app "frontend" --target-branch "${TARGET_BRANCH}" \
+        --latest-commit "${LATEST_COMMIT}" --pull-request-number "${PR_NUMBER}" --repository-url "${TARGET_REPO_URL}"; \
 fi
 
 RUN ./slcli scan  --bsid buildSessionId.txt --path-to-scanner ./slgoagent --workspacepath ./ --scm git --scmProvider github
