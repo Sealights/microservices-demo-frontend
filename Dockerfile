@@ -64,7 +64,7 @@ RUN if [[ $IS_PR -eq 0 ]]; then \
     BUILD_NAME=$(date +%F_%T) && ./slcli config create-bsid --app "frontend" --build "$BUILD_NAME" --branch "master" ; \
 else \ 
     echo "Pull request"; \
-    ./slcli config create-pr-bsid --app "frontend" --target-branch "${TARGET_BRANCH}" \
+    ./slcli config create-pr-bsid --app "frontend" --branch REMOVE-THIS --build REMOVE-YES --target-branch "${TARGET_BRANCH}" \
         --latest-commit "${LATEST_COMMIT}" --pull-request-number "${PR_NUMBER}" --repository-url "${TARGET_REPO_URL}"; \
 fi
 
