@@ -34,6 +34,7 @@ ENV TARGET_BRANCH ${TARGET_BRANCH}
 ENV LATEST_COMMIT ${LATEST_COMMIT}
 ENV PR_NUMBER ${PR_NUMBER}
 ENV TARGET_REPO_URL ${TARGET_REPO_URL}
+ENV OTEL_AGENT_COLLECTOR_PROTOCOL = "grpc"
 
 RUN echo "========================================================="
 RUN echo "targetBranch: ${TARGET_BRANCH}"
