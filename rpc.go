@@ -16,6 +16,7 @@ package main
 
 import (
 	"context"
+	"time"
 
 	pb "github.com/GoogleCloudPlatform/microservices-demo/src/frontend/genproto/hipstershop"
 
@@ -116,6 +117,8 @@ func (fe *frontendServer) getRecommendations(ctx context.Context, userID string,
 }
 
 func (fe *frontendServer) getAd(ctx context.Context, ctxKeys []string) ([]*pb.Ad, error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Second*10)
+	defer cancel()
 	
 	resp, err := pb.NewAdServiceClient(fe.adSvcConn).GetAds(ctx, &pb.AdRequest{
 		ContextKeys: ctxKeys,
