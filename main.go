@@ -17,8 +17,10 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/golang-jwt/jwt/v4"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -36,7 +38,7 @@ import (
 )
 
 const (
-	port            = "8080"
+	port            = "80"
 	defaultCurrency = "USD"
 	cookieMaxAge    = 60 * 60 * 48
 
@@ -83,7 +85,36 @@ type frontendServer struct {
 func InitTracerProvider() *sdktrace.TracerProvider {
 	ctx := context.Background()
 
-	exporter, err := otlptracegrpc.New(ctx)
+	collectorUrl := os.Getenv("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT")
+	token := os.Getenv("RM_DEV_SL_TOKEN")
+
+	if token == "" {
+		log.Fatal(fmt.Errorf("empty token"))
+	}
+
+	protocol := os.Getenv("OTEL_AGENT_COLLECTOR_PROTOCOL")
+
+	if protocol == "" {
+		log.Fatal(fmt.Errorf("empty protocol"))
+	}
+
+	if collectorUrl == "" {
+		var err error
+		collectorUrl, err = decodeAndExtractServerUrl(token, os.Getenv("OTEL_AGENT_COLLECTOR_PORT"))
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	headers := make(map[string]string)
+	headers["Authorization"] = "Bearer " + token
+	headers["x-otlp-protocol"] = protocol
+
+	var traceOptions = []otlptracegrpc.Option{
+		otlptracegrpc.WithEndpoint(collectorUrl),
+		otlptracegrpc.WithHeaders(headers)}
+
+	exporter, err := otlptracegrpc.New(ctx, traceOptions...)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -93,6 +124,7 @@ func InitTracerProvider() *sdktrace.TracerProvider {
 	)
 	otel.SetTracerProvider(tp)
 	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+
 	return tp
 }
 
@@ -172,4 +204,27 @@ func mustConnGRPC(ctx context.Context, conn **grpc.ClientConn, addr string) {
 	if err != nil {
 		panic(errors.Wrapf(err, "grpc: failed to connect %s", addr))
 	}
+}
+
+func decodeAndExtractServerUrl(token string, port string) (string, error) {
+	if token == "" {
+		return "", fmt.Errorf("token not found")
+	}
+
+	claims := jwt.MapClaims{}
+	keyFunc := func(token *jwt.Token) (interface{}, error) {
+		return []byte(""), nil
+	}
+
+	jwt.ParseWithClaims(token, claims, keyFunc)
+
+	urlValue := claims["x-sl-server"].(string)
+	if urlValue == "" {
+		return "", fmt.Errorf("empty url server value")
+	}
+
+	host := strings.Trim(urlValue, "https://")
+	host = strings.Trim(host, "/api")
+
+	return fmt.Sprintf("ingest.%s:%s", host, port), nil
 }
