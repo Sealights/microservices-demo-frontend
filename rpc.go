@@ -16,7 +16,6 @@ package main
 
 import (
 	"context"
-	"time"
 
 	pb "github.com/GoogleCloudPlatform/microservices-demo/src/frontend/genproto/hipstershop"
 
