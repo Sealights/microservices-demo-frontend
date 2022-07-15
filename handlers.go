@@ -84,6 +84,8 @@ func (fe *frontendServer) homeHandler(w http.ResponseWriter, r *http.Request) {
 		ps[i] = productView{p, price}
 	}
 
+	ad := fe.chooseAd(r.Context(), []string{}, log)
+
 	// Set ENV_PLATFORM (default to local if not set; use env var if set; otherwise detect GCP, which overrides env)_
 	var env = os.Getenv("ENV_PLATFORM")
 	// Only override from env variable if set + valid env
@@ -100,7 +102,7 @@ func (fe *frontendServer) homeHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Debugf("ENV_PLATFORM is: %s", env)
 	plat = platformDetails{}
-	plat.setPlatformDetails(strings.ToLower(env))
+	plat.setPlatformDetails(strings.ToLower(env))	
 
 	if err := templates.ExecuteTemplate(w, "home", map[string]interface{}{
 		"session_id":        sessionID(r),
@@ -111,7 +113,7 @@ func (fe *frontendServer) homeHandler(w http.ResponseWriter, r *http.Request) {
 		"products":          ps,
 		"cart_size":         cartSize(cart),
 		"banner_color":      os.Getenv("BANNER_COLOR"), // illustrates canary deployments
-		"ad":                fe.chooseAd(r.Context(), []string{}, log),
+		"ad":                ad,
 		"platform_css":      plat.css,
 		"platform_name":     plat.provider,
 		"is_cymbal_brand":   isCymbalBrand,
