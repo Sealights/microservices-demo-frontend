@@ -80,6 +80,10 @@ type frontendServer struct {
 
 	adSvcAddr string
 	adSvcConn *grpc.ClientConn
+
+	adSvcAddrHttp string
+
+	httpTraffic string
 }
 
 func InitTracerProvider() *sdktrace.TracerProvider {
@@ -153,6 +157,8 @@ func main() {
 	mustMapEnv(&svc.checkoutSvcAddr, "CHECKOUT_SERVICE_ADDR")
 	mustMapEnv(&svc.shippingSvcAddr, "SHIPPING_SERVICE_ADDR")
 	mustMapEnv(&svc.adSvcAddr, "AD_SERVICE_ADDR")
+	mustMapEnv(&svc.adSvcAddrHttp, "AD_SERVICE_ADDR_HTTP")
+	mustMapEnv(&svc.httpTraffic, "HTTP_TRAFFIC")
 
 	mustConnGRPC(ctx, &svc.currencySvcConn, svc.currencySvcAddr)
 	mustConnGRPC(ctx, &svc.productCatalogSvcConn, svc.productCatalogSvcAddr)
