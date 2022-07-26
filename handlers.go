@@ -15,9 +15,13 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"html/template"
+	"io/ioutil"
 	"math/rand"
 	"net"
 	"net/http"
@@ -427,12 +431,54 @@ func (fe *frontendServer) setCurrencyHandler(w http.ResponseWriter, r *http.Requ
 // chooseAd queries for advertisements available and randomly chooses one, if
 // available. It ignores the error retrieving the ad since it is not critical.
 func (fe *frontendServer) chooseAd(ctx context.Context, ctxKeys []string, log logrus.FieldLogger) *pb.Ad {
-	ads, err := fe.getAd(ctx, ctxKeys)
+	if fe.httpTraffic == "true" && fe.adSvcAddrHttp != "" {
+		return fe.getAdByHttp(ctx, ctxKeys)
+	} else {
+		ads, err := fe.getAd(ctx, ctxKeys)
+		if err != nil {
+			log.WithField("error", err).Warn("failed to retrieve ads")
+			return nil
+		}
+		return ads[rand.Intn(len(ads))]
+	}
+}
+
+func (fe *frontendServer) getAdByHttp(ctx context.Context, ctxKeys []string) *pb.Ad {
+	var buffer bytes.Buffer
+	buffer.WriteString(fmt.Sprintf("http://%s/ads", fe.adSvcAddrHttp))
+
+	for i, ctxKey := range ctxKeys {
+		if i == 0 {
+			buffer.WriteString(fmt.Sprintf("?category=%s", ctxKey))
+		} else {
+			buffer.WriteString(fmt.Sprintf("&category=%s", ctxKey))
+		}
+	}
+
+	resp, err := otelhttp.Get(ctx, fmt.Sprintf(buffer.String()))
 	if err != nil {
 		log.WithField("error", err).Warn("failed to retrieve ads")
 		return nil
 	}
-	return ads[rand.Intn(len(ads))]
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.WithField("error", err).Warn("Error read body from request")
+		return nil
+	}
+	var ar AdResponse
+
+	err = json.Unmarshal([]byte(body), &ar)
+	if err != nil {
+		log.WithField("error", err).Warn("Error unmarshaling data from request.")
+		return nil
+	}
+
+	grpcAr := ar.Ads[rand.Intn(len(ar.Ads))]
+
+	return &pb.Ad{
+		RedirectUrl: grpcAr.RedirectUrl,
+		Text:        grpcAr.Text,
+	}
 }
 
 func renderHTTPError(log logrus.FieldLogger, r *http.Request, w http.ResponseWriter, err error, code int) {
