@@ -15,13 +15,9 @@
 package main
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"html/template"
-	"io/ioutil"
 	"math/rand"
 	"net"
 	"net/http"
@@ -440,44 +436,6 @@ func (fe *frontendServer) chooseAd(ctx context.Context, ctxKeys []string, log lo
 			return nil
 		}
 		return ads[rand.Intn(len(ads))]
-	}
-}
-
-func (fe *frontendServer) getAdByHttp(ctx context.Context, ctxKeys []string) *pb.Ad {
-	var buffer bytes.Buffer
-	buffer.WriteString(fmt.Sprintf("http://%s/ads", fe.adSvcAddrHttp))
-
-	for i, ctxKey := range ctxKeys {
-		if i == 0 {
-			buffer.WriteString(fmt.Sprintf("?category=%s", ctxKey))
-		} else {
-			buffer.WriteString(fmt.Sprintf("&category=%s", ctxKey))
-		}
-	}
-
-	resp, err := otelhttp.Get(ctx, fmt.Sprintf(buffer.String()))
-	if err != nil {
-		log.WithField("error", err).Warn("failed to retrieve ads")
-		return nil
-	}
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.WithField("error", err).Warn("Error read body from request")
-		return nil
-	}
-	var ar AdResponse
-
-	err = json.Unmarshal([]byte(body), &ar)
-	if err != nil {
-		log.WithField("error", err).Warn("Error unmarshaling data from request.")
-		return nil
-	}
-
-	grpcAr := ar.Ads[rand.Intn(len(ar.Ads))]
-
-	return &pb.Ad{
-		RedirectUrl: grpcAr.RedirectUrl,
-		Text:        grpcAr.Text,
 	}
 }
 
