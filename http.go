@@ -61,6 +61,8 @@ func (fe *frontendServer) getRecommendationsByHttp(ctx context.Context, userID s
 		}
 	}
 
+	log.Infof(fmt.Sprintf("Buffer: %s ", buffer.String()))
+
 	buffer.WriteString(fmt.Sprintf("&user_id=%s", userID))
 
 	resp, err := otelhttp.Get(ctx, fmt.Sprintf(buffer.String()))
