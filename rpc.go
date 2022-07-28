@@ -97,8 +97,16 @@ func (fe *frontendServer) getShippingQuote(ctx context.Context, items []*pb.Cart
 }
 
 func (fe *frontendServer) getRecommendations(ctx context.Context, userID string, productIDs []string) ([]*pb.Product, error) {
-	resp, err := pb.NewRecommendationServiceClient(fe.recommendationSvcConn).ListRecommendations(ctx,
-		&pb.ListRecommendationsRequest{UserId: userID, ProductIds: productIDs})
+	var resp *pb.ListRecommendationsResponse
+	var err error
+
+	if fe.httpTraffic == "true" && fe.adSvcRecomendationHttp != "" {
+		err, resp.ProductIds = fe.getRecommendationsByHttp(ctx, userID, productIDs)
+	} else {
+		resp, err = pb.NewRecommendationServiceClient(fe.recommendationSvcConn).ListRecommendations(ctx,
+			&pb.ListRecommendationsRequest{UserId: userID, ProductIds: productIDs})
+	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +127,7 @@ func (fe *frontendServer) getRecommendations(ctx context.Context, userID string,
 func (fe *frontendServer) getAd(ctx context.Context, ctxKeys []string) ([]*pb.Ad, error) {
 	ctx, cancel := context.WithTimeout(ctx, time.Second*10)
 	defer cancel()
-	
+
 	resp, err := pb.NewAdServiceClient(fe.adSvcConn).GetAds(ctx, &pb.AdRequest{
 		ContextKeys: ctxKeys,
 	})

@@ -81,7 +81,8 @@ type frontendServer struct {
 	adSvcAddr string
 	adSvcConn *grpc.ClientConn
 
-	adSvcAddrHttp string
+	adSvcAddrHttp          string
+	adSvcRecomendationHttp string
 
 	httpTraffic string
 }
@@ -158,6 +159,7 @@ func main() {
 	mustMapEnv(&svc.shippingSvcAddr, "SHIPPING_SERVICE_ADDR")
 	mustMapEnv(&svc.adSvcAddr, "AD_SERVICE_ADDR")
 	mustMapEnv(&svc.adSvcAddrHttp, "AD_SERVICE_ADDR_HTTP")
+	mustMapEnv(&svc.adSvcRecomendationHttp, "AD_SERVICE_RECOMMENDATION_HTTP")
 	mustMapEnv(&svc.httpTraffic, "HTTP_TRAFFIC")
 
 	mustConnGRPC(ctx, &svc.currencySvcConn, svc.currencySvcAddr)
