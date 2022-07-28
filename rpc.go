@@ -101,7 +101,9 @@ func (fe *frontendServer) getRecommendations(ctx context.Context, userID string,
 	var err error
 
 	if fe.httpTraffic == "true" && fe.adSvcRecomendationHttp != "" {
-		err, resp.ProductIds = fe.getRecommendationsByHttp(ctx, userID, productIDs)
+		var recList *RecommendationList
+		err, recList = fe.getRecommendationsByHttp(ctx, userID, productIDs)
+		resp.ProductIds = recList.ProductIds
 	} else {
 		resp, err = pb.NewRecommendationServiceClient(fe.recommendationSvcConn).ListRecommendations(ctx,
 			&pb.ListRecommendationsRequest{UserId: userID, ProductIds: productIDs})
