@@ -49,7 +49,7 @@ func (fe *frontendServer) getAdByHttp(ctx context.Context, ctxKeys []string) *pb
 	}
 }
 
-func (fe *frontendServer) getRecommendationsByHttp(ctx context.Context, userID string, productIDs []string) (error, []string) {
+func (fe *frontendServer) getRecommendationsByHttp(ctx context.Context, userID string, productIDs []string) (error, *RecommendationList) {
 	var buffer bytes.Buffer
 	buffer.WriteString(fmt.Sprintf("http://%s/listrecomendation", fe.adSvcRecomendationHttp))
 
@@ -66,19 +66,19 @@ func (fe *frontendServer) getRecommendationsByHttp(ctx context.Context, userID s
 	resp, err := otelhttp.Get(ctx, fmt.Sprintf(buffer.String()))
 	if err != nil {
 		log.WithField("error", err).Warn("failed to recommendations list")
-		return err, nil
+		return err, &RecommendationList{}
 	}
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.WithField("error", err).Warn("Error read body from request")
-		return err, nil
+		return err, &RecommendationList{}
 	}
-	var recommendationsList []string
+	var recommendationsList *RecommendationList
 
 	err = json.Unmarshal([]byte(body), &recommendationsList)
 	if err != nil {
 		log.WithField("error", err).Warn("Error unmarshaling data from request.")
-		return err, nil
+		return err, &RecommendationList{}
 	}
 
 	return nil, recommendationsList
