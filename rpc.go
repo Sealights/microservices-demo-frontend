@@ -101,7 +101,7 @@ func (fe *frontendServer) getRecommendations(ctx context.Context, userID string,
 	var err error
 
 	if fe.httpTraffic == "true" && fe.adSvcRecomendationHttp != "" {
-		var recList *RecommendationList
+		var recList *RecommendationList = new(RecommendationList)
 		err, recList = fe.getRecommendationsByHttp(ctx, userID, productIDs)
 		resp.ProductIds = recList.ProductIds
 	} else {
