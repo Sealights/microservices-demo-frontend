@@ -97,11 +97,11 @@ func (fe *frontendServer) getShippingQuote(ctx context.Context, items []*pb.Cart
 }
 
 func (fe *frontendServer) getRecommendations(ctx context.Context, userID string, productIDs []string) ([]*pb.Product, error) {
-	var resp *pb.ListRecommendationsResponse
+	var resp *pb.ListRecommendationsResponse = new(pb.ListRecommendationsResponse)
 	var err error
 
 	if fe.httpTraffic == "true" && fe.adSvcRecomendationHttp != "" {
-		var recList *RecommendationList = new(RecommendationList)
+		var recList *RecommendationList
 		err, recList = fe.getRecommendationsByHttp(ctx, userID, productIDs)
 		resp.ProductIds = recList.ProductIds
 	} else {
