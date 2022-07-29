@@ -53,17 +53,17 @@ func (fe *frontendServer) getRecommendationsByHttp(ctx context.Context, userID s
 	var buffer bytes.Buffer
 	buffer.WriteString(fmt.Sprintf("http://%s/listrecomendation", fe.adSvcRecomendationHttp))
 
+	buffer.WriteString(fmt.Sprintf("?user_id=%s", userID))
+
 	for i, productID := range productIDs {
 		if i == 0 {
-			buffer.WriteString(fmt.Sprintf("?product_ids=%s", productID))
+			buffer.WriteString(fmt.Sprintf("&product_ids=%s", productID))
 		} else {
 			buffer.WriteString(fmt.Sprintf(",%s", productID))
 		}
 	}
 
 	log.Infof(fmt.Sprintf("Buffer: %s ", buffer.String()))
-
-	buffer.WriteString(fmt.Sprintf("&user_id=%s", userID))
 
 	resp, err := otelhttp.Get(ctx, fmt.Sprintf(buffer.String()))
 	if err != nil {
